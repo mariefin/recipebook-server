@@ -18,6 +18,11 @@ app.get("/recipe-create", async (req, res) => {
   res.send("Recipe created \n");
 });
 
+app.post('/recipes/single', async (req, res) =>{
+  const recipe = Recipe.findOne({name: req.body.name});
+  res.json(recipe);
+});
+
 
 app.listen(PORT, () => {
     console.log(`Running on ${PORT}`);
