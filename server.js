@@ -4,17 +4,36 @@ const connectDb = require("./src/connection");
 const PORT = 8080;
 const Recipe = require("./src/Recipe.model");
 const cors = require("cors");
+const recipeRoute = require('./src/routes');
 
 app.use(cors());
+
+app.use(express.urlencoded({
+  limit: '15mb',
+  extended: true
+})); 
+app.use(express.json({limit: '15mb', extended: true}));
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Credentials", true);
+  next();
+})
 
 app.get("/recipes", async (req, res) => {
   const recipes = await Recipe.find();
   res.json(recipes);
 });
 
-app.get("/recipe-create", async (req, res) => {
-  const recipe = new Recipe({ name: "Testi", ingredients: [{ amount: "3", ingredient: "Milk"}], instruction: "Test test test test test test test" });
-  await recipe.save().then(() => console.log("recipe created"));
+app.post("/recipe-create", async (req, res) => {
+  console.log(typeof req.body.body.ingredients);
+  const newrecipe = new Recipe({ name: req.body.body.name, 
+    instructions: req.body.body.instructions, 
+    image: req.body.body.image, 
+    ingredients: req.body.body.ingredients });
+  newrecipe.save().then(() => console.log("recipe created"));
   res.send("Recipe created \n");
 });
 
@@ -23,6 +42,44 @@ app.post('/recipes/single', async (req, res) =>{
   res.json(recipe);
 });
 
+app.get('/files', (req, res) => {
+  gfs.files.find().toArray((err, files) => {
+    if (!files || files.length === 0) {
+      return res.status(404).json({
+        err: 'No files exist'
+      });
+    }
+  });
+});
+
+app.get('/files/:filename', (req, res) => {
+  gfs.files.findOne({filename: req.params.filename}, (err, file) => {
+    if (!file || file.length === 0) {
+      return res.status(404).json({
+        err: 'No files'
+      });
+    }
+    return res.json(file);
+  });
+});
+
+app.get('/image/:filename', (req, res) => {
+  gfs.files.findOne({filename: req.params.filename}, (err, file) => {
+    if (!file || file.length === 0) {
+      return res.status(404).json({
+        err: 'No file'
+       });
+    }
+    if (file.contentType === 'image/jpeg' || file.contentType === 'image/jpg' || file.contentType === 'image/png') {
+    const readstream = gfs.createReadStream(file.filename);
+    readstream.pipe(res);
+    } else {
+      res.status(404).json({
+        err: 'Not an image'
+      });
+    }
+  });
+});
 
 app.listen(PORT, () => {
     console.log(`Running on ${PORT}`);
