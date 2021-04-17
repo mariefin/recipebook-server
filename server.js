@@ -4,7 +4,6 @@ const connectDb = require("./src/connection");
 const PORT = 8080;
 const Recipe = require("./src/Recipe.model");
 const cors = require("cors");
-const recipeRoute = require('./src/routes');
 
 app.use(cors());
 
@@ -41,6 +40,14 @@ app.post('/recipes/single', async (req, res) =>{
   const recipe = Recipe.findOne({name: req.body.name});
   res.json(recipe);
 });
+
+app.delete("/delete-recipe/:id", (req, res) => {
+  Recipe.findByIdAndRemove(req.params.id)
+    .then(result => {
+      res.json({success: true})
+    })
+    .catch(error => console.log(error))
+})
 
 app.get('/files', (req, res) => {
   gfs.files.find().toArray((err, files) => {
