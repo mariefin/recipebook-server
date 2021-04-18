@@ -7,8 +7,13 @@ const recipeSchema = new mongoose.Schema({
             type: Object
         }
     ],
-    instructions: String,
-    image: String
+    instructions: [
+        {
+            type: Object
+        }
+    ],
+    image: String,
+    ingress: String
 })
 
 const Recipe = mongoose.model("recipe", recipeSchema);

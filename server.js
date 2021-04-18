@@ -27,11 +27,11 @@ app.get("/recipes", async (req, res) => {
 });
 
 app.post("/recipe-create", async (req, res) => {
-  console.log(typeof req.body.body.ingredients);
   const newrecipe = new Recipe({ name: req.body.body.name, 
     instructions: req.body.body.instructions, 
     image: req.body.body.image, 
-    ingredients: req.body.body.ingredients });
+    ingredients: req.body.body.ingredients,
+    ingress: req.body.body.ingress });
   newrecipe.save().then(() => console.log("recipe created"));
   res.send("Recipe created \n");
 });
@@ -47,6 +47,24 @@ app.delete("/delete-recipe/:id", (req, res) => {
       res.json({success: true})
     })
     .catch(error => console.log(error))
+})
+
+app.post('/update-recipe/:id', (req, res) => {
+  Recipe.findOneAndUpdate(
+    {_id: req.body.body.id},
+    {
+      $set: {
+        name: req.body.body.name, 
+        instructions: req.body.body.instructions, 
+        image: req.body.body.image, 
+        ingredients: req.body.body.ingredients,
+        ingress: req.body.body.ingress
+      },
+    },
+    { new: true},
+  ).then(info => {
+    res.json(info)
+  }).catch(err => res.status(400).json({msg: 'Update failed'})) 
 })
 
 app.get('/files', (req, res) => {
